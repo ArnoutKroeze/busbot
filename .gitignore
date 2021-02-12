@@ -1,0 +1,12 @@
+*.log
+env
+__pycache__
+.idea
+.git
+
+
+# private info
+config.json
+prefixes.json
+
+datadog_sender.py
