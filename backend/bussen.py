@@ -1,4 +1,5 @@
 import random
+import time
 
 class Deck:
     def __init__(self):
@@ -100,6 +101,7 @@ class Bussen(CardGame):
         self.players = []
         self.current_player = None
         self.started = False
+
 
         # Where we are in the game
         self.game_status = 0
@@ -310,6 +312,7 @@ class Bussen(CardGame):
     def piramide(self, text, user=None, initiate=False):
         if initiate:
             self.initiate()
+            self.make_sure_nobody_nexts_too_fast = time.time()
             self.piramide_cards = [self.deck.pop() for _ in range(15)]
             output = f"Nu jullie vier kaarten hebben kan de piramide beginnen!\n type 'ja' om een kaart op te gooien\n"
             output += f"type 'next' voor de volgende kaart\n"
@@ -331,12 +334,14 @@ class Bussen(CardGame):
                 break
 
         if text == 'next':
-            if time.time()+10 < self.make_sure_nobody_nexts_too_fast:
-                continue
-            else:
+            if time.time() + 10 < self.make_sure_nobody_nexts_too_fast:
                 self.make_sure_nobody_nexts_too_fast = time.time()
-                return "Niet zo snel!! ik ben ook maar dronken"
+                print(self.make_sure_nobody_nexts_too_fast)
+            else:
+                return "Hey doe is ff rustig an"
+
             self.piramide_progress += 1
+
             if self.piramide_progress in [5, 9, 12, 14]:
                 self.piramide_row += 1
 
@@ -478,40 +483,17 @@ class Bussen(CardGame):
         return
 
     def new_bus_speler(self):
-        new_speler = self.players[0]
 
-        possible_players = [new_speler]
+        for player in self.players:
+            player.busscore = 0
+            try:
+                for index, card in enumerate(player.cards):
+                    player.busscore += index*15+card.rank
+            except IndexError:
+                player.busscore = 0
 
-        for speler in self.players:
-            # krijg een lijst met spelers met de meeste kaarten
-            if len(speler.cards) > len(possible_players[0].cards):
-                possible_players = [speler]
-            elif len(speler.cards) == len(possible_players[0].cards):
-                possible_players.append(speler)
+        self.current_player = sorted(self.players, key=lambda player: player.busscore)[0]
 
-        if len(possible_players) == 1:
-            self.current_player = random.choice(possible_players)
-            return
-
-        if len(possible_players[0].cards) == 0:
-            self.current_player = random.choice(possible_players)
-            return
-
-        while True:
-            all_cards = [player.cards.pop() for player in possible_players]
-            lowest_card = min(all_cards)
-            indexes = []
-            for index, card in enumerate(all_cards):
-                if card > lowest_card: # checks which cards are higher, so dont get in the bus
-                    indexes.append(index)
-            for index in reversed(indexes):
-                del possible_players[index]
-            if len(possible_players) == 1:
-                self.current_player = possible_players[0]
-                return
-            elif len(possible_players[0].cards) == 0:
-                self.current_player = random.choice(possible_players)
-                return
 
 
     def reshuffle_bus(self):
