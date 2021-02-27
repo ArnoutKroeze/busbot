@@ -334,7 +334,7 @@ class Bussen(CardGame):
                 break
 
         if text == 'next':
-            if time.time() + 10 < self.make_sure_nobody_nexts_too_fast:
+            if time.time() - 10 > self.make_sure_nobody_nexts_too_fast:
                 self.make_sure_nobody_nexts_too_fast = time.time()
                 print(self.make_sure_nobody_nexts_too_fast)
             else:
