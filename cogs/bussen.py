@@ -48,8 +48,6 @@ class Busbot(commands.Cog):
         game = get_game(ctx.channel.id)
         user = ctx.author
         channel = ctx.channel
-        print(games)
-        print(game)
         if game is None:
             # Maak een spel aan
             games[channel.id] = Bussen()

@@ -26,34 +26,35 @@ class Leuk(commands.Cog):
         self.bot = bot
         self.db = database_helper.DatabaseHelper()
 
+    def embed_image(self, file, title):
+        if file:
+            filename = file.split("/")[-1]
+
+            embed = discord.Embed(title=title)
+            discord_file = discord.File(file, filename=filename)
+            embed.set_image(url=f"attachment://{filename}")
+            return embed, discord_file
+        else:
+            embed = discord.Embed(title="Ik kan niks vinden. sorry :'(")
+            return embed, False    
 
     def get_photo_by_subreddit(self, subreddit):
 
         file, title = self.db.random_by_subreddit(subreddit)
-        if file:
-            filename = file.split("/")[-1]
 
-            embed = discord.Embed(title=title)
-            discord_file = discord.File(file, filename=filename)
-            embed.set_image(url=f"attachment://{filename}")
-            return embed, discord_file
-        else:
-            embed = discord.Embed(title="Ik kan niks vinden. sorry :'(")
-            return embed, False      
+        return self.embed_image(file, title)        
+  
     
     def get_photo_by_title(self, search_term: str):
 
         file, title = self.db.random_by_title(search_term)
-        if file:
-            filename = file.split("/")[-1]
+        return self.embed_image(file, title)     
 
-            embed = discord.Embed(title=title)
-            discord_file = discord.File(file, filename=filename)
-            embed.set_image(url=f"attachment://{filename}")
-            return embed, discord_file
-        else:
-            embed = discord.Embed(title="Ik kan niks vinden. sorry :'(")
-            return embed, ""        
+    def get_photo_by_title_and_subreddit(self, search_term: str, subreddit='klokmemes'):
+
+        file, title = self.db.random_by_title_and_sub(search_term, subreddit)
+        return self.embed_image(file, title)     
+
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.message):
@@ -62,12 +63,19 @@ class Leuk(commands.Cog):
         await on_message_bier(self, message)
 
     @commands.command(name="klok", aliases=["klonk", "meme"])
-    async def stuur_klokmeme(self, ctx):
+    async def stuur_klokmeme(self, ctx, *args):
         """
         Stuur een lekkere lauwe klokmeme
         """
 
-        embed, file = self.get_photo_by_subreddit("klokmemes")
+        text = ''.join(args[i] + ' ' for i in range(0, len(args)))
+        text = text.strip()
+
+        if text == "":
+            embed, file = self.get_photo_by_subreddit("klokmemes")
+        else:
+            embed, file = self.get_photo_by_title_and_subreddit(text, 'klokmemes')
+
         if file:
             await ctx.send(file=file, embed=embed)
         else:
@@ -78,9 +86,12 @@ class Leuk(commands.Cog):
         """
         Stuurt een foto terug uit de door jou gekozen subreddit, als ik die heb.
         """
-        search_term = str(args[0]).strip()
 
-        embed, file = self.get_photo_by_subreddit(search_term)
+        text = ''.join(args[i] + ' ' for i in range(0, len(args)))
+        text = text.strip()
+
+
+        embed, file = self.get_photo_by_title(text)
         if file:
             await ctx.send(file=file, embed=embed)
         else:
@@ -91,10 +102,11 @@ class Leuk(commands.Cog):
         """
         Zoekt ff naar een foto die ik heb op basis van je zoekterm. Hij kijkt naar titels.
         """
-        search_term = args[0]
-        print(search_term)
 
-        embed, file = self.get_photo_by_title(search_term)
+        text = ''.join(args[i] + ' ' for i in range(0, len(args)))
+        text = text.strip()
+
+        embed, file = self.get_photo_by_title(text)
         if file:
             await ctx.send(file=file, embed=embed)
         else:

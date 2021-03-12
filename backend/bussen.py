@@ -336,7 +336,6 @@ class Bussen(CardGame):
         if text == 'next':
             if time.time() - 10 > self.make_sure_nobody_nexts_too_fast:
                 self.make_sure_nobody_nexts_too_fast = time.time()
-                print(self.make_sure_nobody_nexts_too_fast)
             else:
                 return "Hey doe is ff rustig an"
 

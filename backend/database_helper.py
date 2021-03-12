@@ -12,22 +12,30 @@ class DatabaseHelper():
         self.cursor = self.db.cursor()
         self.PATH = data_location
 
+
+    def handle_return(self, *args):
+
+        try:
+            title, file, subreddit = list(*args)[0]
+            file = os.path.join(self.PATH, subreddit, file)
+            return file, title
+        except ValueError:
+            # if there are no such photos
+            return False, False
+        except Exception as e:
+            print(e)
+            return False, False
+
+
     
     def random_by_subreddit(self, subreddit="klokmemes"):
         # Returns a random image from this subreddit
 
-        self.cursor.execute('''SELECT title, filename FROM alle_fotos WHERE subreddit=? 
+        self.cursor.execute('''SELECT title, filename, subreddit FROM alle_fotos WHERE subreddit=? 
                             ORDER BY RANDOM() LIMIT 1''',
                 (subreddit,))     
 
-        try:
-            full_title, file = self.cursor.fetchall()[0]
-            file = os.path.join(self.PATH, subreddit, file)
-            print(file)
-            return file, full_title
-        except Exception as e:
-            print(e)
-            return False, False
+        return self.handle_return(self.cursor.fetchall()[0])
 
     def random_by_title(self, title: str):
         # Returns a random image whose title contains this substring. This is case-insensitive.
@@ -36,13 +44,12 @@ class DatabaseHelper():
         self.cursor.execute('''
             SELECT title, filename, subreddit FROM alle_fotos WHERE title LIKE ? ORDER BY RANDOM() LIMIT 1''',
             ('%' + title + '%',))
+        
+        return self.handle_return(self.cursor.fetchall()[0])
 
-        try:
-            full_title, file, subreddit = self.cursor.fetchall()[0]
-            file = os.path.join(self.PATH, subreddit, file)
-            return file, full_title
-        except Exception as e:
-            print(e)
-            return False, False
-
-
+    def random_by_title_and_sub(self, title: str, subreddit='klokmemes'):
+        self.cursor.execute('''
+            SELECT title, filename, subreddit FROM alle_fotos WHERE title LIKE ? AND subreddit=? ORDER BY RANDOM() LIMIT 1''',
+            ('%' + title + '%', subreddit))
+        
+        return self.handle_return(self.cursor.fetchall())
