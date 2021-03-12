@@ -8,6 +8,7 @@ from discord import File
 from discord.ext import commands
 
 from backend import biernet
+from backend import database_helper
 
 klok_dir = "~/Media/klok_memes/"
 
@@ -16,12 +17,43 @@ async def on_message_bier(self, message: discord.message):
     bericht = message.content.lower()
     if any(woord in bericht for woord in proost):
         await message.add_reaction(emoji="\U0001F37B")
+        return
     return
 
 
 class Leuk(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.db = database_helper.DatabaseHelper()
+
+
+    def get_photo_by_subreddit(self, subreddit):
+
+        file, title = self.db.random_by_subreddit(subreddit)
+        if file:
+            filename = file.split("/")[-1]
+
+            embed = discord.Embed(title=title)
+            discord_file = discord.File(file, filename=filename)
+            embed.set_image(url=f"attachment://{filename}")
+            return embed, discord_file
+        else:
+            embed = discord.Embed(title="Ik kan niks vinden. sorry :'(")
+            return embed, False      
+    
+    def get_photo_by_title(self, search_term: str):
+
+        file, title = self.db.random_by_title(search_term)
+        if file:
+            filename = file.split("/")[-1]
+
+            embed = discord.Embed(title=title)
+            discord_file = discord.File(file, filename=filename)
+            embed.set_image(url=f"attachment://{filename}")
+            return embed, discord_file
+        else:
+            embed = discord.Embed(title="Ik kan niks vinden. sorry :'(")
+            return embed, ""        
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.message):
@@ -35,12 +67,41 @@ class Leuk(commands.Cog):
         Stuur een lekkere lauwe klokmeme
         """
 
-        #hier zijn klok_memes
-        klok_memes_dir = [f for f in os.listdir(klok_dir)]
-        klok_meme = random.choice(klok_memes_dir)
-        with open(os.path.join(klok_dir, klok_meme), "rb") as f:
-            picture = discord.File(f)
-            await ctx.send(file=picture)
+        embed, file = self.get_photo_by_subreddit("klokmemes")
+        if file:
+            await ctx.send(file=file, embed=embed)
+        else:
+            await ctx.send(embed=embed)
+
+    @commands.command(name="sub", aliases=["subreddit"])
+    async def stuur_foto_uit_subreddit(self, ctx, *args):
+        """
+        Stuurt een foto terug uit de door jou gekozen subreddit, als ik die heb.
+        """
+        search_term = str(args[0]).strip()
+
+        embed, file = self.get_photo_by_subreddit(search_term)
+        if file:
+            await ctx.send(file=file, embed=embed)
+        else:
+            await ctx.send(embed=embed)
+
+    @commands.command(name="titel", aliases=["title, search, zoek"])
+    async def stuur_foto_uit_titel(self, ctx, *args):
+        """
+        Zoekt ff naar een foto die ik heb op basis van je zoekterm. Hij kijkt naar titels.
+        """
+        search_term = args[0]
+        print(search_term)
+
+        embed, file = self.get_photo_by_title(search_term)
+        if file:
+            await ctx.send(file=file, embed=embed)
+        else:
+            await ctx.send(embed=embed)
+
+
+
 
     @commands.command(name="biernet", aliases=['bier', 'beer'], brief="Geeft de huidige bieraanbiedingen voor je!")
     async def doe_biernet(self, ctx, *args):

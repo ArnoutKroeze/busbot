@@ -1,5 +1,6 @@
 *.log
 env
+venv
 __pycache__
 .idea
 .git
@@ -10,3 +11,4 @@ config.json
 prefixes.json
 
 datadog_sender.py
+*.sqlite
