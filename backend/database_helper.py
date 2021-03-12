@@ -35,7 +35,7 @@ class DatabaseHelper():
                             ORDER BY RANDOM() LIMIT 1''',
                 (subreddit,))     
 
-        return self.handle_return(self.cursor.fetchall()[0])
+        return self.handle_return(self.cursor.fetchall())
 
     def random_by_title(self, title: str):
         # Returns a random image whose title contains this substring. This is case-insensitive.
@@ -45,7 +45,7 @@ class DatabaseHelper():
             SELECT title, filename, subreddit FROM alle_fotos WHERE title LIKE ? ORDER BY RANDOM() LIMIT 1''',
             ('%' + title + '%',))
         
-        return self.handle_return(self.cursor.fetchall()[0])
+        return self.handle_return(self.cursor.fetchall())
 
     def random_by_title_and_sub(self, title: str, subreddit='klokmemes'):
         self.cursor.execute('''
